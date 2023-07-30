@@ -1,8 +1,6 @@
-package ru.netology.sql_dao;
+package ru.netology.sql_dao.repository;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,17 +16,15 @@ import java.util.stream.Collectors;
 @Repository
 public class MyRepository {
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private final String script;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-
-    String script;
+    public MyRepository(DataSource dataSource, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.dataSource = dataSource;
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+        this.script = read("MyScript.sql");
+    }
 
 
     private static String read(String scriptFileName) {
@@ -41,9 +37,7 @@ public class MyRepository {
     }
 
     public List<String> getProductName(String name) {
-        script = read("MyScript.sql");
         var namedParameters = new MapSqlParameterSource("name", name);
-        return namedParameterJdbcTemplate.query(script, namedParameters,
-                (rs, rowNum) -> rs.getString(1));
+        return namedParameterJdbcTemplate.queryForList(script, namedParameters, String.class);
     }
 }
